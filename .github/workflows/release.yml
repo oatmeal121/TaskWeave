@@ -1,0 +1,65 @@
+name: Publish TaskWeave for Windows
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      VITE_TASKWEAVE_UPDATE_CONFIGURED: "true"
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      TAURI_SIGNING_PUBLIC_KEY: ${{ secrets.TAURI_SIGNING_PUBLIC_KEY }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build files
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run checks
+        run: |
+          npm run test:reminders
+          npm run test:data-transfer
+          npm run build
+
+      - name: Prepare GitHub updater configuration
+        run: npm run release:prepare-config
+
+      - name: Build release and create draft
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: TaskWeave v__VERSION__
+          releaseBody: |
+            TaskWeave v__VERSION__
+
+            本地任务管理软件，支持看板、甘特图、项目与子项目、重复任务和定时提醒。
+            Windows 64 位用户请下载下方的 `TaskWeave_*_x64-setup.exe`，双击安装。
+            更新前可在「设置 → 数据迁移与备份」导出一份备份。
+
+            A local task manager with a Kanban board, Gantt view, projects and subprojects, recurring tasks, and reminders.
+            On 64-bit Windows, download `TaskWeave_*_x64-setup.exe` below and run the installer.
+            Before updating, you can export a backup from Settings → Data transfer and backup.
+          releaseDraft: true
+          prerelease: false
+          args: --bundles nsis --config src-tauri/target/tauri.github.conf.json

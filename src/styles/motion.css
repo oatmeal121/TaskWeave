@@ -1,0 +1,105 @@
+:root {
+  --motion-fast: 120ms;
+  --motion-normal: 180ms;
+  --motion-ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+/* Color feedback is shared; only action buttons get a small press movement.
+   Draggable handles and window controls retain their original geometry. */
+#app button {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    opacity var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease),
+    scale var(--motion-fast) var(--motion-ease);
+}
+
+#app :is(.primary-button, .icon-button, .worked-button, .advanced-toggle, .task-edit-button, .nav-item):active:not(:disabled):not([draggable="true"]) {
+  scale: .97;
+}
+
+#app .primary-button:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+body,
+.sidebar,
+.window-titlebar,
+.settings-panel,
+.recurring-card {
+  transition:
+    background-color var(--motion-normal) var(--motion-ease),
+    border-color var(--motion-normal) var(--motion-ease),
+    color var(--motion-normal) var(--motion-ease);
+}
+
+/* Keep the sidebar's existing width behavior while easing theme changes. */
+.sidebar {
+  transition:
+    width var(--motion-normal) var(--motion-ease),
+    box-shadow var(--motion-normal) var(--motion-ease),
+    background-color var(--motion-normal) var(--motion-ease),
+    border-color var(--motion-normal) var(--motion-ease);
+}
+
+.tw-popover-enter-active,
+.tw-popover-leave-active {
+  transition:
+    opacity var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.tw-popover-enter-from,
+.tw-popover-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.tw-overlay-enter-active,
+.tw-overlay-leave-active {
+  transition: opacity var(--motion-normal) var(--motion-ease);
+}
+
+.tw-overlay-enter-active > :is(.task-form, .confirm-dialog, .gantt-detail-panel, .central-reminder),
+.tw-overlay-leave-active > :is(.task-form, .confirm-dialog, .gantt-detail-panel, .central-reminder) {
+  transition: transform var(--motion-normal) var(--motion-ease);
+}
+
+.tw-overlay-enter-from,
+.tw-overlay-leave-to {
+  opacity: 0;
+}
+
+.tw-overlay-enter-from > :is(.task-form, .confirm-dialog, .gantt-detail-panel, .central-reminder),
+.tw-overlay-leave-to > :is(.task-form, .confirm-dialog, .gantt-detail-panel, .central-reminder) {
+  transform: translateY(6px);
+}
+
+/* Removed controls cannot receive a second click during their brief exit. */
+.tw-popover-leave-active,
+.tw-overlay-leave-active {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-normal: 0ms;
+  }
+
+  body,
+  #app *,
+  #app *::before,
+  #app *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  #app :is(.primary-button, .icon-button, .worked-button, .advanced-toggle, .task-edit-button, .nav-item):active:not(:disabled):not([draggable="true"]) {
+    scale: none;
+  }
+}
